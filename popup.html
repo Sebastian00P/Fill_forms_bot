@@ -7,10 +7,25 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h2>AutoFill</h2>
-    <input type="file" id="fileInput">
-    <button id="loadBtn">Załaduj dane</button>
-    <p id="status"></p>
+    <div class="container">
+        <h2><i class="fas fa-file-alt"></i>Uzupełnianie danych</h2>
+        
+        <label class="file-label">
+            <input type="file" id="fileInput">
+            <span>📂 Wybierz plik JSON</span>
+        </label>
+
+        <button id="loadBtn" class="btn load">
+            <i class="fas fa-upload"></i> Załaduj dane
+        </button>
+
+        <button id="downloadBtn" class="btn download">
+            <i class="fas fa-download"></i> Pobierz formularz
+        </button>
+
+        <p id="status"></p>
+    </div>
+
     <script src="popup.js"></script>
 </body>
 </html>
