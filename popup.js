@@ -5,18 +5,16 @@ document.addEventListener("DOMContentLoaded", function () {
     let downloadBtn = document.getElementById("downloadBtn");
     let status = document.getElementById("status");
 
-    // Aktualizuje label po wybraniu pliku
     fileInput.addEventListener("change", () => {
         if (fileInput.files.length > 0) {
             fileLabel.textContent = `📄 ${fileInput.files[0].name}`;
-            fileLabel.style.color = "#4CAF50"; // Zielony tekst po dodaniu pliku
+            fileLabel.style.color = "#4CAF50";
         } else {
             fileLabel.textContent = "📂 Wybierz plik JSON";
             fileLabel.style.color = "#555";
         }
     });
 
-    // Przycisk ładowania pliku JSON
     loadBtn.addEventListener("click", () => {
         if (fileInput.files.length > 0) {
             let file = fileInput.files[0];
@@ -46,7 +44,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Przycisk pobierania pól formularza
     downloadBtn.addEventListener("click", () => {
         chrome.runtime.sendMessage({ action: "getFormFields" }, (response) => {
             if (response && response.success) {
