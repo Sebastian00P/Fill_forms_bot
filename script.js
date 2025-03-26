@@ -3,6 +3,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "loadData") {
         try {
             let jsonData = request.data;
+            let skipPaths = request.skipPaths || ["podmiot.organizacja", "podmiot.adresSiedziby"]; // <-- przekazujemy pomijane ścieżki
 
             chrome.storage.local.set({ formData: jsonData }, () => {
                 chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -10,7 +11,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                         chrome.scripting.executeScript({
                             target: { tabId: tabs[0].id },
                             world: "MAIN",
-                            func: (data) => {
+                            func: (data, skipPaths) => {
                                 try {
                                     const appElement = document.querySelector('div[data-ng-show="view === \'form\'"]');
                                     if (!appElement) throw new Error("Nie znaleziono elementu z data-ng-show='view === form'");
@@ -18,15 +19,41 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                                     const scope = angular.element(appElement).scope();
                                     if (!scope) throw new Error("Nie znaleziono scope'a Angulara");
 
-                                    scope.dane = data;
+                                    function shouldSkip(path, skipPaths) {
+                                        return skipPaths.some(skip => path === skip);
+                                    }
+
+                                    function deepAssign(target, source, skipPaths, currentPath = '') {
+                                        Object.keys(source).forEach(key => {
+                                            const fullPath = currentPath ? `${currentPath}.${key}` : key;
+                                            if (shouldSkip(fullPath, skipPaths)) return;
+
+                                            if (
+                                                typeof source[key] === 'object' &&
+                                                source[key] !== null &&
+                                                !Array.isArray(source[key])
+                                            ) {
+                                                target[key] = target[key] || {};
+                                                deepAssign(target[key], source[key], skipPaths, fullPath);
+                                            } else {
+                                                target[key] = source[key];
+                                            }
+                                        });
+                                    }
+
+                                    function assignWithSkippedPaths(target, source, skipPaths) {
+                                        deepAssign(target, source, skipPaths);
+                                    }
+
+                                    assignWithSkippedPaths(scope.dane, data, skipPaths);
                                     scope.$apply();
 
-                                    console.log("✅ Model Angulara załadowany.");
+                                    console.log("✅ Model Angulara załadowany (z pominięciem):", skipPaths);
                                 } catch (err) {
                                     console.error("❌ Błąd przy ładowaniu danych:", err);
                                 }
                             },
-                            args: [jsonData]
+                            args: [jsonData, skipPaths]
                         });
                     }
                 });
